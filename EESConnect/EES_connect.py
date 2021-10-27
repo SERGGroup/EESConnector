@@ -1,4 +1,4 @@
-import costants
+import EESConnect.constants as constants
 import shutil, os
 
 
@@ -21,22 +21,22 @@ class EESConnector:
 
         self.__with_initialization = True
 
-        if os.path.isdir(costants.EES_REFPROP_DIR) and not self.__keep_refprop:
+        if os.path.isdir(constants.EES_REFPROP_DIR) and not self.__keep_refprop:
             # This part of the code moves the EES-REFPROP plugin folder away from its correct location in order to
             # prevent the plugin from asking the user the position of the Refprop folder on each iteration.
             #
             # If refprop is needed for the calculation the
-            shutil.move(costants.EES_REFPROP_DIR, costants.EES_REFPROP_TMP_DIR)
+            shutil.move(constants.EES_REFPROP_DIR, constants.EES_REFPROP_TMP_DIR)
 
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
 
-        if os.path.isdir(costants.EES_REFPROP_TMP_DIR):
+        if os.path.isdir(constants.EES_REFPROP_TMP_DIR):
             # This part of the code moves the EES-REFPROP plugin folder back in its correct location in order to
             # restore the plugin functionality
 
-            shutil.move(costants.EES_REFPROP_TMP_DIR, costants.EES_REFPROP_DIR)
+            shutil.move(constants.EES_REFPROP_TMP_DIR, constants.EES_REFPROP_DIR)
 
         if self.is_ready:
 
@@ -65,7 +65,7 @@ class EESConnector:
 
         try:
 
-            system_comand = "{} {} /solve".format(costants.EES_PATH, self.__ees_file_path)
+            system_comand = "{} {} /solve".format(constants.EES_PATH, self.__ees_file_path)
             os.system(system_comand)
 
         except:
@@ -126,7 +126,7 @@ class EESConnector:
     @classmethod
     def modify_ees_executable_path(cls):
 
-        costants.retrieve_EES_path()
+        constants.retrieve_EES_path()
 
 
 if __name__ == "__main__":
