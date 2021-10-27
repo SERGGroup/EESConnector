@@ -1,4 +1,6 @@
 import EESConnect.constants as constants
+from tkinter import filedialog
+import tkinter as tk
 import shutil, os
 
 
@@ -100,9 +102,12 @@ class EESConnector:
 
     def select_file(self):
 
-        from tkinter import filedialog
+        root = tk.Tk()
+        root.withdraw()
 
         self.ees_file_path = filedialog.askopenfilename(title='select EES file')
+
+        root.destroy()
 
     @property
     def ees_file_path(self):
