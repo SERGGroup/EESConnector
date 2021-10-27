@@ -1,15 +1,18 @@
+from tkinter import filedialog
+import tkinter as tk
 import os
 
 
 def retrieve_EES_path(failure_possible=True):
 
-    from tkinter import filedialog
-
+    root = tk.Tk()
+    root.withdraw()
     __EES_PATH = filedialog.askopenfilename(
 
         title='select EES executable'
 
     )
+    root.destroy()
 
     if os.path.isfile(__EES_PATH):
 
