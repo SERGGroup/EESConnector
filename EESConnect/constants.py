@@ -70,6 +70,10 @@ EES_REFPROP_TMP_DIR = os.path.join(EES_DIR, "EES_REFPROP")
 """
 
 WORKSPACE_DIR = os.path.join(ROOT_DIR, "workspace")
+
+if not os.path.isdir(WORKSPACE_DIR):
+    os.mkdir(WORKSPACE_DIR)
+
 EES_MACRO = os.path.join(WORKSPACE_DIR, "ees_run_macro.EMF")
 EES_RUN_FILENAME = os.path.join(WORKSPACE_DIR, "ees_program.ees")
 EES_INPUT_FILENAME = "ees_input.dat"

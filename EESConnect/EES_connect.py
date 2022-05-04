@@ -117,11 +117,12 @@ class EESConnector:
     @staticmethod
     def __write_input_file(input_list, filename):
 
-        string_to_write = input_list[0]
+        string_to_write = str(input_list[0])
 
         for element in input_list[1:]:
             string_to_write += "\t" + str(element)
 
+        string_to_write.replace(".", ",")
         with open(os.path.join(constants.WORKSPACE_DIR, filename + constants.IO_FILE_EXTENSION), "w") as f:
             f.write(string_to_write)
 
