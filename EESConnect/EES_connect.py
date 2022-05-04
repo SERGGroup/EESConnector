@@ -19,27 +19,12 @@ class EESConnector:
     def __enter__(self):
 
         self.__with_initialization = True
-
-        if os.path.isdir(constants.EES_REFPROP_DIR) and not self.__keep_refprop:
-            # This part of the code moves the EES-REFPROP plugin folder away from its correct location in order to
-            # prevent the plugin from asking the user the position of the Refprop folder on each iteration.
-            #
-            # If refprop is needed for the calculation the
-            shutil.move(constants.EES_REFPROP_DIR, constants.EES_REFPROP_TMP_DIR)
-
+        self.__move_REFPROP_DIR(move_away=True)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
 
-        if os.path.isdir(constants.EES_REFPROP_TMP_DIR):
-            # This part of the code moves the EES-REFPROP plugin folder back to its correct location in order to
-            # restore the plugin functionality
-            shutil.move(constants.EES_REFPROP_TMP_DIR, constants.EES_REFPROP_DIR)
-
-        if self.is_ready:
-
-            # This part delete the file used for data IO
-            self.__clear_files()
+        self.quit()
 
     def calculate(self, input_list):
 
@@ -60,6 +45,13 @@ class EESConnector:
         else:
 
             return self.__collect_output()
+
+    def quit(self):
+
+        self.__move_REFPROP_DIR(move_away=False)
+        if self.is_ready:
+            # This part delete the file used for data IO
+            self.__clear_files()
 
     def __prepare_input(self, input_list):
 
@@ -105,6 +97,22 @@ class EESConnector:
         else:
 
             return return_dict
+
+    def __move_REFPROP_DIR(self, move_away):
+
+        if move_away:
+
+            if os.path.isdir(constants.EES_REFPROP_DIR) and not self.__keep_refprop:
+                # This part of the code moves the EES-REFPROP plugin folder away from its correct location in order to
+                # prevent the plugin from asking the user the position of the Refprop folder on each iteration.
+                shutil.move(constants.EES_REFPROP_DIR, constants.EES_REFPROP_TMP_DIR)
+
+        else:
+
+            if os.path.isdir(constants.EES_REFPROP_TMP_DIR):
+                # This part of the code moves the EES-REFPROP plugin folder back to its correct location in order to
+                # restore the plugin functionality
+                shutil.move(constants.EES_REFPROP_TMP_DIR, constants.EES_REFPROP_DIR)
 
     @staticmethod
     def __write_input_file(input_list, filename):
