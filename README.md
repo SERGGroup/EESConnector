@@ -51,11 +51,40 @@ with EESConnector() as ees:
     
     ees.ees_file_path = ees_file_path
     result = ees.calculate(["air_ha", 110, 1013.25])
-    print(result[0][1])
+    print(result[1])
 
 ```
-please notice that the EES file has to be configured properly in order to work.<br>
-Here an example, that works with the python code described above:
+Multiple call are possible passing a dictionaty in the ees.calculate() function in order to speed up the calculation 
+process (the program is loaded on the RAM only once):
+
+```python
+from EESConnect import EESConnector
+from tkinter import filedialog
+import tkinter as tk
+
+#select the ees file path
+root = tk.Tk()
+root.withdraw()
+ees_file_path = filedialog.askopenfilename()
+
+with EESConnector() as ees:
+    
+    ees.ees_file_path = ees_file_path
+    result = ees.calculate({
+
+            "air_ha":   ["air_ha", 300, 1013.25],
+            "R22":      ["R22", 300, 1013.25],
+            "R236fa":   ["R236fa", 300, 1013.25],
+            "R134a":    ["R134a", 300, 1013.25]
+
+        })
+    
+    print(result["R22"][1])
+    print(result["R236fa"][1])
+
+```
+Please notice that the EES file has to be configured properly in order to work.<br>
+Here's an example, that works with the python code described above:
 ```
 $UnitSystem SI K kPa kJ 
 $Import 'ees_input.dat' F$ T P
@@ -65,13 +94,13 @@ s=entropy(F$; T=T; P=P)
 
 $Export 'ees_output.dat' h s
 ```
-An explaination on how to set EES properly can be found [here](https://fchartsoftware.com/ees/eeshelp//hs605.htm).
-Please notice two important things:
+An explaination on how to set EES properly can be found [here](https://fchartsoftware.com/ees/eeshelp//hs605.htm). 
+Two important things had to be noted:
 
  * The input defined in the EES file __must be consistent with the list provided to the calculation function__ as an input
 
 
- * The files input and output file for EES __must be called__ _"ees_input.dat"_ and _"ees_output.dat"_ respectively!
+ * The input and output file in the EES code __must be called__ _"ees_input.dat"_ and _"ees_output.dat"_ respectively!
    
 <br/><br/>
 __-------------------------- !!! THIS IS A BETA VERSION !!! --------------------------__ 

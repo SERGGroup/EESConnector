@@ -8,13 +8,10 @@ class EESConnector:
 
     def __init__(self, ees_file_path=None, keep_refprop=False):
 
+        self.__clear_files()
         self.__with_initialization = False
         self.__keep_refprop = keep_refprop
-
         self.__ees_file_path = None
-        self.__ees_file_directory = None
-        self.__ees_input_file = None
-        self.__ees_output_file = None
 
         if ees_file_path is not None:
             self.ees_file_path = ees_file_path
@@ -35,39 +32,25 @@ class EESConnector:
     def __exit__(self, exc_type, exc_val, exc_tb):
 
         if os.path.isdir(constants.EES_REFPROP_TMP_DIR):
-            # This part of the code moves the EES-REFPROP plugin folder back in its correct location in order to
+            # This part of the code moves the EES-REFPROP plugin folder back to its correct location in order to
             # restore the plugin functionality
-
             shutil.move(constants.EES_REFPROP_TMP_DIR, constants.EES_REFPROP_DIR)
 
         if self.is_ready:
 
             # This part delete the file used for data IO
-
-            for file in [self.__ees_input_file, self.__ees_output_file]:
-                if os.path.exists(file):
-                    os.remove(file)
+            self.__clear_files()
 
     def calculate(self, input_list):
 
         if self.is_ready:
 
-            string_to_write = input_list[0]
-
-            for element in input_list[1:]:
-                string_to_write += "\t" + str(element)
-
-            with open(self.__ees_input_file, "w") as f:
-
-                f.write(string_to_write)
-
-            with open(self.__ees_output_file, "w") as f:
-
-                f.write("")
+            self.__prepare_input(input_list)
 
         try:
 
-            system_comand = "{} {} /solve".format(constants.EES_PATH, self.__ees_file_path)
+            system_comand = "{} {}".format(constants.EES_PATH, constants.EES_MACRO)
+            os.chdir(constants.WORKSPACE_DIR)
             os.system(system_comand)
 
         except:
@@ -76,29 +59,93 @@ class EESConnector:
 
         else:
 
-            with open(self.__ees_output_file, "r") as f:
+            return self.__collect_output()
 
-                lines = f.readlines()
+    def __prepare_input(self, input_list):
 
-            return_list = list()
+        if type(input_list) == list:
 
-            for line in lines:
+            self.__write_input_file(input_list, "default")
+            last_file_path = os.path.join(constants.WORKSPACE_DIR, "default" + constants.IO_FILE_EXTENSION)
 
-                sublist = list()
+        elif type(input_list) == dict:
 
-                for element in line.strip("\n").split("\t"):
+            key = "1"
+            for key in input_list.keys():
 
-                    try:
+                self.__write_input_file(input_list[key], key)
 
-                        sublist.append(float(element.replace(",", ".")))
+            last_file_path = os.path.join(constants.WORKSPACE_DIR, key + constants.IO_FILE_EXTENSION)
 
-                    except:
+        else:
+            return
 
-                        sublist.append(element)
+        shutil.copy(last_file_path, os.path.join(constants.WORKSPACE_DIR, constants.EES_INPUT_FILENAME))
 
-                return_list.append(sublist)
+    def __collect_output(self):
 
-            return return_list
+        return_dict = dict()
+
+        for file in os.listdir(constants.WORKSPACE_DIR):
+
+            if file.endswith(constants.IO_FILE_EXTENSION):
+
+                key = file.strip(constants.IO_FILE_EXTENSION)
+
+                return_dict.update({
+
+                    key: self.__read_output_file(key)
+
+                })
+
+        if "default" in return_dict.keys():
+
+            return return_dict["default"]
+
+        else:
+
+            return return_dict
+
+    @staticmethod
+    def __write_input_file(input_list, filename):
+
+        string_to_write = input_list[0]
+
+        for element in input_list[1:]:
+            string_to_write += "\t" + str(element)
+
+        with open(os.path.join(constants.WORKSPACE_DIR, filename + constants.IO_FILE_EXTENSION), "w") as f:
+            f.write(string_to_write)
+
+    @staticmethod
+    def __read_output_file(filename):
+
+        with open(os.path.join(constants.WORKSPACE_DIR, filename + constants.IO_FILE_EXTENSION), "r") as f:
+
+            lines = f.readlines()
+
+        return_list = list()
+
+        for line in lines:
+
+            for element in line.strip("\n").split("\t"):
+
+                try:
+
+                    return_list.append(float(element.replace(",", ".")))
+
+                except:
+
+                    return_list.append(element)
+
+        return return_list
+
+    @staticmethod
+    def __clear_files():
+
+        for file in os.listdir(constants.WORKSPACE_DIR):
+            if file.endswith(constants.IO_FILE_EXTENSION) or file.endswith(".ees") or file.endswith(".dat") or file.endswith(".DAT"):
+                os.remove(os.path.join(constants.WORKSPACE_DIR, file))
 
     def select_file(self):
 
@@ -124,9 +171,11 @@ class EESConnector:
         if os.path.isfile(ees_file_path):
 
             self.__ees_file_path = ees_file_path
-            self.__ees_file_directory = os.path.dirname(ees_file_path)
-            self.__ees_input_file = os.path.join(self.__ees_file_directory, "ees_input.dat")
-            self.__ees_output_file = os.path.join(self.__ees_file_directory, "ees_output.dat")
+
+            if os.path.isfile(constants.EES_RUN_FILENAME):
+                os.remove(constants.EES_RUN_FILENAME)
+
+            shutil.copy(ees_file_path, constants.EES_RUN_FILENAME)
 
     @classmethod
     def modify_ees_executable_path(cls):
@@ -139,5 +188,17 @@ if __name__ == "__main__":
     with EESConnector() as connector:
 
         connector.select_file()
-        result = connector.calculate(["air_ha", 150, 1013.25])
+        # result = connector.calculate({
+        #
+        #     "1": ["air_ha", 300, 1013.25],
+        #     "2": ["R22", 300, 1013.25],
+        #     "3": ["R236fa", 300, 1013.25],
+        #     "4": ["R134a", 300, 1013.25],
+        #     "5": ["R236fa", 300, 1013.25],
+        #     "6": ["R134a", 300, 1013.25],
+        #     "7": ["R236fa", 300, 1013.25],
+        #     "8": ["R134a", 300, 1013.25]
+        #
+        # })
+        result = connector.calculate(["air_ha", 300, 1013.25])
         print(result)
