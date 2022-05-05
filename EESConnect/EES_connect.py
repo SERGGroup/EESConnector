@@ -96,7 +96,7 @@ class EESConnector:
 
         try:
 
-            system_comand = "{} {} /solve".format(constants.EES_PATH, constants.EES_RUN_FILENAME)
+            system_comand = "{} {} /solve /hide".format(constants.EES_PATH, constants.EES_RUN_FILENAME)
             os.chdir(constants.WORKSPACE_DIR)
             os.system(system_comand)
 
@@ -115,7 +115,7 @@ class EESConnector:
 
         try:
 
-            system_comand = "{} {}".format(constants.EES_PATH, constants.EES_MACRO)
+            system_comand = "{} {} /hide".format(constants.EES_PATH, constants.EES_MACRO)
             os.chdir(constants.WORKSPACE_DIR)
             os.system(system_comand)
 
@@ -259,7 +259,8 @@ if __name__ == "__main__":
 
     import time
 
-    n_calculations = 8
+    n_calculations = 2
+    calculate_with_macro = True
     input_dict = dict()
 
     T_amb = 15
@@ -288,7 +289,7 @@ if __name__ == "__main__":
 
         })
 
-    with EESConnector(solve_with_macro=False) as connector:
+    with EESConnector(solve_with_macro=calculate_with_macro) as connector:
 
         connector.select_file()
         start = time.time()
