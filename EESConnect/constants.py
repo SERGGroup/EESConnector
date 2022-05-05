@@ -64,7 +64,7 @@ EES_REFPROP_TMP_DIR = os.path.join(EES_DIR, "EES_REFPROP")
 """
     
     MACRO FILE GENERATION:
-    macrofile should be saved in the workspace directory where the EES file will be stored too
+    EES macro file should be saved in the workspace directory where the EES file will be stored too
     the name that the ees file must have is 
 
 """
@@ -81,7 +81,7 @@ EES_OUTPUT_FILENAME = "ees_output.dat"
 IO_FILE_EXTENSION = ".pyees"
 
 
-def set_macro():
+def set_macro(macro_delay):
 
     __macro_text = (
 
@@ -96,6 +96,7 @@ def set_macro():
 
         "\t" + "{import_statement}\n"
         "\t" + "solve\n"
+        "\t" + "Delay {macro_delay}\n"
         "\t" + "{export_statement}\n"
         "\t" + "filename$=GetNextFile$\n"
 
@@ -105,6 +106,7 @@ def set_macro():
 
     ).format(
 
+        macro_delay = int(macro_delay),
         workspace_dir=WORKSPACE_DIR,
         ees_filename=EES_RUN_FILENAME,
         input_extension=IO_FILE_EXTENSION,
@@ -136,4 +138,4 @@ def __get_io_statement(get_import):
        )
 
 
-set_macro()
+set_macro(100)
