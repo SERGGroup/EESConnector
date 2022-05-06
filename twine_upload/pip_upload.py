@@ -4,11 +4,12 @@ import os, shutil
 def upload_files():
     venv_name = "venv"
     setup_cmd = "python setup.py sdist"
-    twine_cmd = '{VENV}\\Scripts\\python {VENV}\\Lib\\site-packages\\twine upload dist/* -u {USER} -p {PSW}'.format(
+    twine_cmd = '{VENV}\\Scripts\\python {VENV}\\Lib\\site-packages\\twine upload dist/* -u {USER} -p {PSW} {OTHER}'.format(
 
         VENV=venv_name,
         USER="__token__",
-        PSW=__read_token()
+        PSW=__read_token(),
+        OTHER="--verbose"
 
     )
 
