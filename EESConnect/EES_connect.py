@@ -111,21 +111,27 @@ class EESConnector:
 
     def __calculate_with_macro(self, input_list):
 
-        self.__prepare_macro_input(input_list)
+        if len(input_list) == 1:
 
-        try:
-
-            system_comand = "{} {} /hide".format(constants.EES_PATH, constants.EES_MACRO)
-            os.chdir(constants.WORKSPACE_DIR)
-            os.system(system_comand)
-
-        except:
-
-            return None
+            return self.__calculate_directly(input_list)
 
         else:
 
-            return self.__collect_macro_output()
+            self.__prepare_macro_input(input_list)
+
+            try:
+
+                system_comand = "{} {} /hide".format(constants.EES_PATH, constants.EES_MACRO)
+                os.chdir(constants.WORKSPACE_DIR)
+                os.system(system_comand)
+
+            except:
+
+                return None
+
+            else:
+
+                return self.__collect_macro_output()
 
     def __prepare_macro_input(self, input_list):
 
@@ -162,6 +168,8 @@ class EESConnector:
                     key: self.__read_output_file(filename)
 
                 })
+
+        self.__clear_files()
 
         if "default" in return_dict.keys():
 
@@ -259,7 +267,7 @@ if __name__ == "__main__":
 
     import time
 
-    n_calculations = 2
+    n_calculations = 32
     calculate_with_macro = True
     input_dict = dict()
 
