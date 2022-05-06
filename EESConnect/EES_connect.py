@@ -75,8 +75,6 @@ class EESConnector:
 
             for key in input_list.keys():
 
-                print("Calculating: " + key)
-
                 return_dict.update({
 
                     key: self.__direct_calculation_passage(input_list[key])
