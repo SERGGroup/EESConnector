@@ -169,7 +169,7 @@ class EESConnector:
 
                 })
 
-        self.__clear_files()
+        self.__clear_files(clear_only_input_files=True)
 
         if "default" in return_dict.keys():
 
@@ -216,10 +216,14 @@ class EESConnector:
         return return_list
 
     @staticmethod
-    def __clear_files():
+    def __clear_files(clear_only_input_files=False):
 
         for file in os.listdir(constants.WORKSPACE_DIR):
-            if file.endswith(constants.IO_FILE_EXTENSION) or file.endswith(".ees") or file.endswith(".dat") or file.endswith(".DAT"):
+
+            if file.endswith(constants.IO_FILE_EXTENSION) or file.endswith(".dat") or file.endswith(".DAT"):
+                os.remove(os.path.join(constants.WORKSPACE_DIR, file))
+
+            if file.endswith(".ees") and (not clear_only_input_files):
                 os.remove(os.path.join(constants.WORKSPACE_DIR, file))
 
     def select_file(self):
