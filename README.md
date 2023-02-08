@@ -87,14 +87,14 @@ Please notice that the EES file has to be configured properly in order to work.<
 Here's an example, that works with the python code described above:
 ```
 $UnitSystem SI K kPa kJ 
-$Import 'ees_input.dat' F$ T P
+$Import 'ees_input.dat' file$ F$ T P
 
 h=enthalpy(F$; T=T; P=P)
 s=entropy(F$; T=T; P=P)
 
-$Export 'ees_output.dat' h s
+$Export file$ h s
 ```
-An explaination on how to set EES properly can be found [here](https://fchartsoftware.com/ees/eeshelp//hs605.htm). 
+An explanation on how to set EES properly can be found [here](https://fchartsoftware.com/ees/eeshelp//hs605.htm). 
 Two important things had to be noted:
 
  * The input defined in the EES file __must be consistent with the list provided to the calculation function__ as an input
@@ -103,6 +103,7 @@ Two important things had to be noted:
  * The input and output file in the EES code __must be called__ _"ees_input.dat"_ and _"ees_output.dat"_ respectively!
    
 <br/><br/>
+
 __-------------------------- !!! THIS IS A BETA VERSION !!! --------------------------__ 
 
 please report any bug or problems in the installation to _pietro.ungar@unifi.it_<br/>

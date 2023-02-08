@@ -8,7 +8,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
 
     name='EES_connector',
-    version='0.3.0',
+    version='0.3.1',
     license='GNU GPLv3',
 
     author='Pietro Ungar',
