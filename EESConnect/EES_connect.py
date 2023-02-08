@@ -181,6 +181,9 @@ class EESConnector:
     def __write_input_file(input_list, filename):
 
         output_filename = os.path.join(constants.WORKSPACE_DIR, "ees_output.dat")
+        if os.path.isfile(output_filename):
+            os.remove(output_filename)
+
         string_to_write = "'" + output_filename + "'"
 
         for element in input_list:
