@@ -6,7 +6,13 @@ import shutil, os
 
 class EESConnector:
 
-    def __init__(self, ees_file_path=None, keep_refprop=False, solve_with_macro=False):
+    def __init__(
+
+            self, ees_file_path=None,
+            keep_refprop=False, solve_with_macro=False,
+            ees_decimal_separator=","
+
+    ):
 
         self.__clear_files()
 
@@ -14,6 +20,7 @@ class EESConnector:
         self.__with_initialization = False
         self.__keep_refprop = keep_refprop
         self.__solve_with_macro = solve_with_macro
+        self.__decimal_separator = ees_decimal_separator
 
         if ees_file_path is not None:
             self.ees_file_path = ees_file_path
@@ -177,8 +184,7 @@ class EESConnector:
 
             return return_dict
 
-    @staticmethod
-    def __write_input_file(input_list, filename):
+    def __write_input_file(self, input_list, filename):
 
         output_filename = os.path.join(constants.WORKSPACE_DIR, "ees_output.dat")
         if os.path.isfile(output_filename):
@@ -187,7 +193,7 @@ class EESConnector:
         string_to_write = "'" + output_filename + "'"
 
         for element in input_list:
-            string_to_write += "\t" + str(element).replace(".", ",")
+            string_to_write += "\t" + str(element).replace(".", self.__decimal_separator)
 
         with open(filename, "w") as f:
             f.write(string_to_write)
