@@ -1,5 +1,6 @@
 import EESConnect.constants as constants
 from tkinter import filedialog
+from tqdm import tqdm
 import tkinter as tk
 import shutil, os
 
@@ -10,7 +11,7 @@ class EESConnector:
 
             self, ees_file_path=None,
             keep_refprop=False, solve_with_macro=False,
-            ees_decimal_separator=","
+            ees_decimal_separator=",", display_progress_bar=False
 
     ):
 
@@ -21,6 +22,7 @@ class EESConnector:
         self.__keep_refprop = keep_refprop
         self.__solve_with_macro = solve_with_macro
         self.__decimal_separator = ees_decimal_separator
+        self.__display_progress_bar = display_progress_bar
 
         if ees_file_path is not None:
             self.ees_file_path = ees_file_path
@@ -80,6 +82,9 @@ class EESConnector:
 
             return_dict = dict()
 
+            if self.__display_progress_bar:
+                pbar = tqdm(desc="EES Calculation Ongoing", total=len(input_list.keys()))
+
             for key in input_list.keys():
 
                 return_dict.update({
@@ -87,6 +92,12 @@ class EESConnector:
                     key: self.__direct_calculation_passage(input_list[key])
 
                 })
+
+                if self.__display_progress_bar:
+                    pbar.update(1)
+
+            if self.__display_progress_bar:
+                pbar.close()
 
             return return_dict
 
