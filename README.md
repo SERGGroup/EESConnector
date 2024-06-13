@@ -4,11 +4,14 @@ __EES connector__ is a tools developed by the [SERG research group](https://www.
 of the [University of Florence](https://www.unifi.it/changelang-eng.html) for launching [EES](https://fchartsoftware.com/ees/) 
 calculation and retrieving results from python.
 
+### Installing EES Connector
 The beta version can be downloaded using __PIP__:
 
 ```
 pip install EES_connector
 ```
+
+### Launching a calculation
 Once the installation has been completed the user can import the tool and initialize the connector itself.
 ```python
 from EESConnect import EESConnector
@@ -81,8 +84,9 @@ with EESConnector() as ees:
     
     print(result["R22"][1])
     print(result["R236fa"][1])
-
 ```
+
+### EES file configuration
 Please notice that the EES file has to be configured properly in order to work.<br>
 Here's an example, that works with the python code described above:
 ```
@@ -98,10 +102,24 @@ An explanation on how to set EES properly can be found [here](https://fchartsoft
 Two important things had to be noted:
 
  * The input defined in the EES file __must be consistent with the list provided to the calculation function__ as an input
-
-
  * The input and output file in the EES code __must be called__ _"ees_input.dat"_ and _"ees_output.dat"_ respectively!
-   
+ 
+### Calculation Options
+Multiple options could be set in initializing the calculator:
+
+```python
+from EESConnect import EESConnector
+
+with EESConnector(ees_decimal_separator=".", display_progress_bar=True, timeout=10) as ees:
+
+    # insert your code here
+
+```
+* _"ees_decimal_separator"_ allows you to set the decimal separator in order to match the one required by your EES file. 
+    The default is a comma (",")
+* _"display_progress_bar"_ shows a bar describing the progress of the calculation
+* _"timeout"_ set a timeout limit for the calculation (value to be set in seconds)
+
 <br/><br/>
 
 __-------------------------- !!! THIS IS A BETA VERSION !!! --------------------------__ 

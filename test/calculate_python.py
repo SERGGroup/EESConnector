@@ -25,7 +25,7 @@ df = {
 
 
 #%% --------------------  CALCULATE                                           ---------------------------------------- #
-with EESConnector() as ees:
+with EESConnector(timeout=10) as ees:
 
     ees.ees_file_path = os.path.join(base_folder, "EES HCT High Concentration_V3python.EES")
     

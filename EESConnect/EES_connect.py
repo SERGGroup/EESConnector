@@ -2,6 +2,7 @@ import EESConnect.constants as constants
 from tkinter import filedialog
 from tqdm import tqdm
 import tkinter as tk
+import subprocess
 import shutil, os
 
 
@@ -11,7 +12,8 @@ class EESConnector:
 
             self, ees_file_path=None,
             keep_refprop=False, solve_with_macro=False,
-            ees_decimal_separator=",", display_progress_bar=False
+            ees_decimal_separator=",", display_progress_bar=False,
+            timeout=None
 
     ):
 
@@ -23,6 +25,7 @@ class EESConnector:
         self.__solve_with_macro = solve_with_macro
         self.__decimal_separator = ees_decimal_separator
         self.__display_progress_bar = display_progress_bar
+        self.__timeout = timeout
 
         if ees_file_path is not None:
             self.ees_file_path = ees_file_path
@@ -113,8 +116,7 @@ class EESConnector:
         try:
 
             system_comand = "{} {} /solve /hide".format(constants.EES_PATH, constants.EES_RUN_FILENAME)
-            os.chdir(constants.WORKSPACE_DIR)
-            os.system(system_comand)
+            subprocess.run(system_comand, timeout=self.__timeout, cwd=constants.WORKSPACE_DIR)
 
         except:
 
