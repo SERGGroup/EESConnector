@@ -4,20 +4,20 @@ __EES connector__ is a tools developed by the [SERG research group](https://www.
 of the [University of Florence](https://www.unifi.it/changelang-eng.html) for launching [EES](https://fchartsoftware.com/ees/) 
 calculation and retrieving results from python.
 
-### Installing EES Connector
+### Installing EES Connector 💾
 The beta version can be downloaded using __PIP__:
 
 ```
 pip install EES_connector
 ```
 
-### EES Connector +
-From **version 1.0.0** a major improvement has been made to the code. For compatibility the previous version 
+### EES Connector + ✨🎉
+From **version 1.0.0** a __major improvement__ has been made to the code. For compatibility the previous class 
 (_EESConnector_) is still usable (you can find the old documentation 
 [here](https://github.com/SERGGroup/EESConnector/blob/master/examples/EES%20Connect/README.md)) but 
 **it will not be maintained**
 
-### Launching a calculation
+### Launching a calculation 💻
 Once the installation has been completed the user can import the tool and initialize the connector itself.
 ```python
 from EESConnect import EESConnectorPlus
@@ -100,7 +100,7 @@ with EESConnectorPlus() as ees:
     print(params)
 ```
 
-### EES file configuration
+### EES file configuration 📑
 Please notice that the EES file has to be configured properly in order to work.<br>
 Here's an example, that works with the python code described above:
 ```
@@ -115,7 +115,7 @@ In addition here's some important things had to be noted:
  * The values identified in the "input" dictionary **must not be defined in the code** (e.g. do not write "T=300" in the code above)
  * The code must work if the variable identified in the "input" dictionary are manually set in the code
  
-### Calculation Options
+### Calculation Options ⚙
 Multiple options could be set in initializing the calculator:
 
 ```python
@@ -132,7 +132,7 @@ with EESConnectorPlus(ees_decimal_separator=".", display_progress_bar=True, time
 * _"timeout"_ set a timeout limit for the calculation (value to be set in seconds)
 
 
-### Excel Exporter
+### Excel Exporter 💾📊
 You export the results of your calculation to excel using Pandas with the following code:
 
 ```python
@@ -145,7 +145,7 @@ with EESConnectorPlus(timeout=10, display_progress_bar=True) as ees:
     ees.export_to_excel(params=params, excel_path=os.path.join(base_folder, "results.xlsx"))
 ```
 
-### EES Optimization and other Execution Personalization
+### EES Optimization and other Execution Personalization 🛠🔧
 EESConnectorPlus works by executing [EES Macros](https://fchartsoftware.com/ees/eeshelp/macro_commands.htm). 
 The behaviour of the macro can be modified by the user to perform more complex operation (the most typical usage is to 
 **perform optimization** in EES). This can be done by modifying the attribute "ees.calculation_instruction".
@@ -178,7 +178,7 @@ Export f$ {{ Output Parameters }}
 10:quit
 ```
 
-### Example Code
+## Example Code 🔎
 You can find some example code in 
 [this](https://github.com/SERGGroup/EESConnector/tree/master/examples/EES%20Connect%20Plus) folder
 <br/><br/>
