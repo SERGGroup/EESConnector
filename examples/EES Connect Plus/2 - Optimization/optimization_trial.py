@@ -38,3 +38,4 @@ with EESConnectorPlus(timeout=10, display_progress_bar=True) as ees:
     ees.calculation_instruction = "Minimize y_max  x_max  /Method=Conjugate  /RelTol=1e-6  /MaxIt=500"
 
     params = ees.calculate(params)
+    ees.export_to_excel(params, os.path.join(base_folder, "results.xlsx"))

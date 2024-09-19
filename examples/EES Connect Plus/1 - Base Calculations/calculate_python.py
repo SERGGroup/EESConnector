@@ -39,3 +39,4 @@ with EESConnectorPlus(display_progress_bar=True) as ees:
 
     ees.ees_file_path = os.path.join(base_folder, "EES HCT High Concentration_V3python.EES")
     params = ees.calculate(params)
+    ees.export_to_excel(params, os.path.join(base_folder, "results.xlsx"))

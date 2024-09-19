@@ -1,9 +1,9 @@
 import EESConnect.constants as constants
 from tkinter import filedialog
-from typing import Union, List
 from copy import deepcopy
 from tqdm import tqdm
 import tkinter as tk
+import pandas as pd
 import subprocess
 import shutil, os
 
@@ -46,7 +46,7 @@ class EESConnectorPlus:
             # This part delete the file used for data IO
             self.__clear_files()
 
-    def move_REFPROP_DIR(self, move_away=True):
+    def move_REFPROP_DIR(self, move_away: bool = True):
 
         if move_away:
 
@@ -62,80 +62,73 @@ class EESConnectorPlus:
                 # restore the plugin functionality
                 shutil.move(constants.EES_REFPROP_TMP_DIR, constants.EES_REFPROP_DIR)
 
-    def calculate(self, params: Union[List[dict], dict]) -> Union[List[dict], dict]:
+    def calculate(self, params: dict) -> dict:
 
         if self.is_ready:
 
-            if self.__use_input_file:
+            first_key = list(params["input"].keys())[0]
+            if type(params["input"][first_key]) == list:
 
-                self.__define_base_macro(
-
-                    input_params=params[0]["input"],
-                    output_params=params[0]["output"]
-
-                )
-
-            if type(params) == dict:
-
-                params = self.__calculate_dict(params)
+                params = self.__calculate_multiple(params)
 
             else:
 
-                params = self.__calculate_list(params)
+                old_use_file = self.__use_input_file
+                self.__use_input_file = False
+
+                params = self.__direct_calculation_passage(params)
+
+                self.__use_input_file = old_use_file
 
         return params
 
-    def __calculate_dict(self, params: dict) -> dict:
+    @staticmethod
+    def export_to_excel(params: dict, excel_path: str):
+
+        df = {}
+
+        for curr_dict in [params["input"], params["output"]]:
+
+            for key in curr_dict.keys():
+
+                df.update({key: curr_dict[key]})
+
+        df = pd.DataFrame(df)
+        df.to_excel(excel_path, index=False, startcol=1, startrow=1, sheet_name="results")
+
+    def __calculate_multiple(self, params: dict) -> dict:
+
+        if self.__use_input_file:
+
+            self.__define_base_macro(
+
+                input_params=params[0]["input"],
+                output_params=params[0]["output"]
+
+            )
 
         first_key = list(params["input"].keys())[0]
-        if type(params["input"][first_key]) == list:
+        n_points = len(params["input"][first_key])
+        self.init_progress_bar(n_points)
+        sub_params = deepcopy(params)
 
-            n_points = len(params["input"][first_key])
-            self.init_progress_bar(n_points)
-            sub_params = deepcopy(params)
+        for key in params["output"].keys():
+            params["output"][key] = list()
+
+        for i in range(n_points):
+
+            for key in sub_params["input"].keys():
+                sub_params["input"][key] = params["input"][key][i]
+
+            sub_params = self.__direct_calculation_passage(sub_params)
 
             for key in params["output"].keys():
-                params["output"][key] = list()
-
-            for i in range(n_points):
-
-                for key in sub_params["input"].keys():
-                    sub_params["input"][key] = params["input"][key][i]
-
-                sub_params = self.__direct_calculation_passage(sub_params)
-
-                for key in params["output"].keys():
-                    params["output"][key].append(sub_params["output"][key])
-
-                self.update_progress_bar()
-
-            self.close_progress_bar()
-
-        else:
-
-            old_use_file = self.__use_input_file
-            self.__use_input_file = False
-
-            params = self.__direct_calculation_passage(params)
-
-            self.__use_input_file = old_use_file
-
-        return params
-
-    def __calculate_list(self, params: List[dict]) -> List[dict]:
-
-        return_list = list()
-
-        self.init_progress_bar(len(params))
-
-        for param in params:
-            return_list.append(self.__direct_calculation_passage(param))
+                params["output"][key].append(sub_params["output"][key])
 
             self.update_progress_bar()
 
         self.close_progress_bar()
-
-        return return_list
+        return params
 
     def __direct_calculation_passage(self, params: dict) -> dict:
 

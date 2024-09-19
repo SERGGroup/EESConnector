@@ -11,12 +11,18 @@ The beta version can be downloaded using __PIP__:
 pip install EES_connector
 ```
 
+### EES Connector +
+From **version 1.0.0** a major improvement has been made to the code. For compatibility the previous version 
+(_EESConnector_) is still usable (you can find the old documentation 
+[here](https://github.com/SERGGroup/EESConnector/blob/master/examples/EES%20Connect/README.md)) but 
+**it will not be maintained**
+
 ### Launching a calculation
 Once the installation has been completed the user can import the tool and initialize the connector itself.
 ```python
-from EESConnect import EESConnector
+from EESConnect import EESConnectorPlus
 
-with EESConnector() as ees:
+with EESConnectorPlus() as ees:
 
     # insert your code here
 
@@ -32,16 +38,16 @@ __Two important aspects to keep in mind for the initialization:__
     file-dialog. The stored executable can be modified calling the following function:
     
 ```python
-from EESConnect import EESConnector
+from EESConnect import EESConnectorPlus
 
-EESConnector.modify_ees_executable_path()
+EESConnectorPlus.modify_ees_executable_path()
 ```
     
 <br/>   
 Finally, you can ask the program to launch EES calculation using the following command:
 
 ```python
-from EESConnect import EESConnector
+from EESConnect import EESConnectorPlus
 from tkinter import filedialog
 import tkinter as tk
 
@@ -50,18 +56,22 @@ root = tk.Tk()
 root.withdraw()
 ees_file_path = filedialog.askopenfilename()
 
-with EESConnector() as ees:
+with EESConnectorPlus() as ees:
     
     ees.ees_file_path = ees_file_path
-    result = ees.calculate(["air_ha", 110, 1013.25])
-    print(result[1])
+    params = ees.calculate({
+        
+        "input": {"fluid$": "air_ha", "T": 300, "P": 1013.25}, 
+        "output": {"h": None, "s": None}
+    
+    })
+    print(params)
 
 ```
-Multiple call are possible passing a dictionaty in the ees.calculate() function in order to speed up the calculation 
-process (the program is loaded on the RAM only once):
 
+Calls with multiple parameters are possible as follows:
 ```python
-from EESConnect import EESConnector
+from EESConnect import EESConnectorPlus
 from tkinter import filedialog
 import tkinter as tk
 
@@ -70,20 +80,24 @@ root = tk.Tk()
 root.withdraw()
 ees_file_path = filedialog.askopenfilename()
 
-with EESConnector() as ees:
+params = {
+    
+    "input": {
+        
+        "fluid$": ["air_ha", "R22", "R236fa", "R134a"], 
+        "T": [300, 300, 300, 300], 
+        "P": [1013.25, 1013.25, 1013.25, 1013.25]
+    
+    }, 
+    "output": {"h": None, "s": None}
+
+}
+
+with EESConnectorPlus() as ees:
     
     ees.ees_file_path = ees_file_path
-    result = ees.calculate({
-
-            "air_ha":   ["air_ha", 300, 1013.25],
-            "R22":      ["R22", 300, 1013.25],
-            "R236fa":   ["R236fa", 300, 1013.25],
-            "R134a":    ["R134a", 300, 1013.25]
-
-        })
-    
-    print(result["R22"][1])
-    print(result["R236fa"][1])
+    params = ees.calculate(params)
+    print(params)
 ```
 
 ### EES file configuration
@@ -91,26 +105,23 @@ Please notice that the EES file has to be configured properly in order to work.<
 Here's an example, that works with the python code described above:
 ```
 $UnitSystem SI K kPa kJ 
-$Import 'ees_input.dat' file$ F$ T P
-
-h=enthalpy(F$; T=T; P=P)
-s=entropy(F$; T=T; P=P)
-
-$Export file$ h s
+h=enthalpy(fluid$; T=T; P=P)
+s=entropy(fluid$; T=T; P=P)
 ```
 An explanation on how to set EES properly can be found [here](https://fchartsoftware.com/ees/eeshelp//hs605.htm). 
-Two important things had to be noted:
+In addition here's some important things had to be noted:
 
- * The input defined in the EES file __must be consistent with the list provided to the calculation function__ as an input
- * The input and output file in the EES code __must be called__ _"ees_input.dat"_ and _"ees_output.dat"_ respectively!
+ * The keys of the "input" and "output" dictionaries __must share the same name__, in the EES code, with the variable that they refer in
+ * The values identified in the "input" dictionary **must not be defined in the code** (e.g. do not write "T=300" in the code above)
+ * The code must work if the variable identified in the "input" dictionary are manually set in the code
  
 ### Calculation Options
 Multiple options could be set in initializing the calculator:
 
 ```python
-from EESConnect import EESConnector
+from EESConnect import EESConnectorPlus
 
-with EESConnector(ees_decimal_separator=".", display_progress_bar=True, timeout=10) as ees:
+with EESConnectorPlus(ees_decimal_separator=".", display_progress_bar=True, timeout=10) as ees:
 
     # insert your code here
 
@@ -120,6 +131,56 @@ with EESConnector(ees_decimal_separator=".", display_progress_bar=True, timeout=
 * _"display_progress_bar"_ shows a bar describing the progress of the calculation
 * _"timeout"_ set a timeout limit for the calculation (value to be set in seconds)
 
+
+### Excel Exporter
+You export the results of your calculation to excel using Pandas with the following code:
+
+```python
+with EESConnectorPlus(timeout=10, display_progress_bar=True) as ees:
+
+    # Calculate
+    params = ees.calculate(params)
+    
+    # Export results
+    ees.export_to_excel(params=params, excel_path=os.path.join(base_folder, "results.xlsx"))
+```
+
+### EES Optimization and other Execution Personalization
+EESConnectorPlus works by executing [EES Macros](https://fchartsoftware.com/ees/eeshelp/macro_commands.htm). 
+The behaviour of the macro can be modified by the user to perform more complex operation (the most typical usage is to 
+**perform optimization** in EES). This can be done by modifying the attribute "ees.calculation_instruction".
+For example, for performing the optimization, you can use the [Minimize Macro instruction](https://fchartsoftware.com/ees/eeshelp/hs4165.htm) as shown below:
+
+```python
+from EESConnect import EESConnectorPlus
+
+with EESConnectorPlus() as ees:
+
+    ees.ees_file_path = os.path.join(base_folder, "optimization_trial.EES")
+    
+    # This code can be used to minimize y_max by changing x_max
+    ees.calculation_instruction = "Minimize y_max  x_max  /Method=Conjugate  /RelTol=1e-6  /MaxIt=500"
+
+    params = ees.calculate(params)
+
+```
+by default _ees.calculation_instruction = "[Solve](https://fchartsoftware.com/ees/eeshelp/hs4320.htm)"_. <br/>
+In general the MACRO that will be run by EES will be the following:
+```
+ONERROR GOTO 10
+DIR$=GetDirectory$
+Open 'ees_program.ees'
+Import 'ees_input.dat' f$ {{ Input Parameters }}
+
+{{ calculation_instruction }}
+
+Export f$ {{ Output Parameters }}
+10:quit
+```
+
+### Example Code
+You can find some example code in 
+[this](https://github.com/SERGGroup/EESConnector/tree/master/examples/EES%20Connect%20Plus) folder
 <br/><br/>
 
 __-------------------------- !!! THIS IS A BETA VERSION !!! --------------------------__ 
