@@ -1,0 +1,11 @@
+ONERROR GOTO 10
+DIR$=GetDirectory$
+Open 'ees_program.ees'
+Import 'ees_input.dat' f$
+b = 10
+c = 3
+
+Minimize y_max  x_max  /Method=Conjugate  /RelTol=1e-6  /MaxIt=500
+
+Export f$ x_max y_max
+10:quit

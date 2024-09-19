@@ -74,68 +74,17 @@ WORKSPACE_DIR = os.path.join(ROOT_DIR, "workspace")
 if not os.path.isdir(WORKSPACE_DIR):
     os.mkdir(WORKSPACE_DIR)
 
-EES_MACRO = os.path.join(WORKSPACE_DIR, "ees_run_macro.EMF")
+EES_MACRO = os.path.join(WORKSPACE_DIR, "ees_macro.EMF")
+EES_DEFAULT_MACRO = os.path.join(WORKSPACE_DIR, "ees_run_macro.EMF")
 EES_RUN_FILENAME = os.path.join(WORKSPACE_DIR, "ees_program.ees")
 EES_INPUT_FILENAME = "ees_input.dat"
 EES_OUTPUT_FILENAME = "ees_output.dat"
 IO_FILE_EXTENSION = ".pyees"
 
-
-def set_macro(macro_delay):
-
-    __macro_text = (
-
-        "ONERROR GOTO 10\n"
-
-        "Open '{ees_filename}'\n"
-        "filename$=GetFirstFile$(*{input_extension})\n"
-
-        "if (filename$='') then GOTO 10\n"
-
-        "repeat\n"
-
-        "\t" + "{import_statement}\n"
-        "\t" + "solve\n"
-        "\t" + "Delay {macro_delay}\n"
-        "\t" + "{export_statement}\n"
-        "\t" + "filename$=GetNextFile$\n"
-
-        "until (filename$='')\n"
-
-        "10:quit"
-
-    ).format(
-
-        macro_delay = int(macro_delay),
-        workspace_dir=WORKSPACE_DIR,
-        ees_filename=EES_RUN_FILENAME,
-        input_extension=IO_FILE_EXTENSION,
-        import_statement=__get_io_statement(get_import=True),
-        export_statement=__get_io_statement(get_import=False)
-
-    )
-
-    with open(EES_MACRO, "w") as f:
-        f.write(__macro_text)
-
-
-def __get_io_statement(get_import):
-
-    if get_import:
-
-        return "delete '{ees_input}'\n\trename filename$ '{ees_input}'".format(
-
-            ees_input=os.path.join(WORKSPACE_DIR, EES_INPUT_FILENAME)
-
-        )
-
-    else:
-
-       return "rename '{ees_output}' filename$".format(
-
-            ees_output=os.path.join(WORKSPACE_DIR, EES_OUTPUT_FILENAME)
-
-       )
-
-
-set_macro(100)
+BASE_MACRO_TXT = "ONERROR GOTO 10\n"
+BASE_MACRO_TXT += "DIR$=GetDirectory$\n"
+BASE_MACRO_TXT += "Open 'ees_program.ees'\n"
+BASE_MACRO_TXT += "{input_params}\n"
+BASE_MACRO_TXT += "{calculation_instruction}\n"
+BASE_MACRO_TXT += "Export f$ {output_params}\n"
+BASE_MACRO_TXT += "10:quit\n"

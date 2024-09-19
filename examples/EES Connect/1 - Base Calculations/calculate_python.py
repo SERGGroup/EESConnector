@@ -7,7 +7,7 @@ import os
 
 
 #%% --------------------  INIT CALCULATIONS                                   ---------------------------------------- #
-base_folder = os.path.join(os.path.dirname(ROOT_DIR), "test")
+base_folder = os.path.join(os.path.dirname(ROOT_DIR), "examples", "EES Connect", "1 - Base Calculations")
 y_range = np.linspace(0.45, 0.5, num=2)
 m_range = np.linspace(100, 300, num=1)
 fr_range = np.linspace(0.8, 0.9, num=1)

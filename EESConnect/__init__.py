@@ -1,2 +1,3 @@
 import EESConnect.constants
 from EESConnect.EES_connect import EESConnector
+from EESConnect.EES_connect_plus import EESConnectorPlus

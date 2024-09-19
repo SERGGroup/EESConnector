@@ -5,7 +5,7 @@ import os
 
 
 #%% --------------------  INIT CALCULATIONS                                   ---------------------------------------- #
-base_folder = os.path.join(os.path.dirname(ROOT_DIR), "test")
+base_folder = os.path.join(os.path.dirname(ROOT_DIR), "examples", "EES Connect", "1 - Base Calculations")
 
 
 #%% --------------------  CALCULATE                                           ---------------------------------------- #

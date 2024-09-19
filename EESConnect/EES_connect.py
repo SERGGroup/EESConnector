@@ -10,25 +10,27 @@ class EESConnector:
 
     def __init__(
 
-            self, ees_file_path=None,
-            keep_refprop=False, solve_with_macro=False,
-            ees_decimal_separator=",", display_progress_bar=False,
-            timeout=None
+            self, ees_file_path=None, macro_path=None,
+            keep_refprop=False, ees_decimal_separator=",",
+            display_progress_bar=False, timeout=None
 
     ):
 
         self.__clear_files()
 
         self.__ees_file_path = None
+        self.__macro_path = None
         self.__with_initialization = False
         self.__keep_refprop = keep_refprop
-        self.__solve_with_macro = solve_with_macro
         self.__decimal_separator = ees_decimal_separator
         self.__display_progress_bar = display_progress_bar
         self.__timeout = timeout
 
         if ees_file_path is not None:
             self.ees_file_path = ees_file_path
+
+        if macro_path is not None:
+            self.macro_path = macro_path
 
     def __enter__(self):
 
@@ -37,22 +39,6 @@ class EESConnector:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-
-        self.quit()
-
-    def calculate(self, input_list):
-
-        if self.is_ready:
-
-            if self.__solve_with_macro:
-
-                return self.__calculate_with_macro(input_list)
-
-            else:
-
-                return self.__calculate_directly(input_list)
-
-    def quit(self):
 
         self.move_REFPROP_DIR(move_away=False)
         if self.is_ready:
@@ -75,7 +61,7 @@ class EESConnector:
                 # restore the plugin functionality
                 shutil.move(constants.EES_REFPROP_TMP_DIR, constants.EES_REFPROP_DIR)
 
-    def __calculate_directly(self, input_list):
+    def calculate(self, input_list):
 
         if type(input_list) == list:
 
@@ -115,8 +101,7 @@ class EESConnector:
 
         try:
 
-            system_comand = "{} {} /solve /hide".format(constants.EES_PATH, constants.EES_RUN_FILENAME)
-            subprocess.run(system_comand, timeout=self.__timeout, cwd=constants.WORKSPACE_DIR)
+            subprocess.run(self.system_command, timeout=self.__timeout, cwd=constants.WORKSPACE_DIR)
 
         except:
 
@@ -126,76 +111,6 @@ class EESConnector:
 
             filename = os.path.join(constants.WORKSPACE_DIR, "ees_output.dat")
             return self.__read_output_file(filename)
-
-    def __calculate_with_macro(self, input_list):
-
-        if len(input_list) == 1:
-
-            return self.__calculate_directly(input_list)
-
-        else:
-
-            self.__prepare_macro_input(input_list)
-
-            try:
-
-                system_comand = "{} {} /hide".format(constants.EES_PATH, constants.EES_MACRO)
-                os.chdir(constants.WORKSPACE_DIR)
-                os.system(system_comand)
-
-            except:
-
-                return None
-
-            else:
-
-                return self.__collect_macro_output()
-
-    def __prepare_macro_input(self, input_list):
-
-        if type(input_list) == list:
-
-            filename = os.path.join(constants.WORKSPACE_DIR, "default" + constants.IO_FILE_EXTENSION)
-            self.__write_input_file(input_list, filename)
-
-        elif type(input_list) == dict:
-
-            filename = os.path.join(constants.WORKSPACE_DIR, "1" + constants.IO_FILE_EXTENSION)
-            for key in input_list.keys():
-                filename = os.path.join(constants.WORKSPACE_DIR, key + constants.IO_FILE_EXTENSION)
-                self.__write_input_file(input_list[key], filename)
-
-        else:
-            return
-
-        shutil.copy(filename, os.path.join(constants.WORKSPACE_DIR, constants.EES_INPUT_FILENAME))
-
-    def __collect_macro_output(self):
-
-        return_dict = dict()
-
-        for file in os.listdir(constants.WORKSPACE_DIR):
-
-            if file.endswith(constants.IO_FILE_EXTENSION):
-
-                filename = os.path.join(constants.WORKSPACE_DIR, file)
-                key = file.strip(constants.IO_FILE_EXTENSION)
-
-                return_dict.update({
-
-                    key: self.__read_output_file(filename)
-
-                })
-
-        self.__clear_files(clear_only_input_files=True)
-
-        if "default" in return_dict.keys():
-
-            return return_dict["default"]
-
-        else:
-
-            return return_dict
 
     def __write_input_file(self, input_list, filename):
 
@@ -234,6 +149,17 @@ class EESConnector:
 
         return return_list
 
+    @property
+    def system_command(self):
+
+        if self.__solve_with_macro:
+
+            return "{} {} /hide".format(constants.EES_PATH, constants.EES_MACRO)
+
+        else:
+
+            return "{} {} /solve /hide".format(constants.EES_PATH, constants.EES_RUN_FILENAME)
+
     @staticmethod
     def __clear_files(clear_only_input_files=False):
 
@@ -255,13 +181,13 @@ class EESConnector:
         root.destroy()
 
     @property
-    def ees_file_path(self):
-        return self.__ees_file_path
-
-    @property
     def is_ready(self):
 
         return self.__ees_file_path is not None
+
+    @property
+    def ees_file_path(self):
+        return self.__ees_file_path
 
     @ees_file_path.setter
     def ees_file_path(self, ees_file_path):
@@ -275,56 +201,33 @@ class EESConnector:
 
             shutil.copy(ees_file_path, constants.EES_RUN_FILENAME)
 
+    @property
+    def macro_path(self):
+        return self.__macro_path
+
+    @macro_path.setter
+    def macro_path(self, macro_path):
+
+        if os.path.isfile(macro_path):
+
+            self.__macro_path = macro_path
+            self.__solve_with_macro = True
+
+            if os.path.isfile(constants.EES_MACRO):
+                os.remove(constants.EES_MACRO)
+
+            shutil.copy(macro_path, constants.EES_MACRO)
+
+        else:
+
+            self.__macro_path = None
+
+    @property
+    def solve_with_macro(self):
+
+        return self.__macro_path is not None
+
     @classmethod
     def modify_ees_executable_path(cls):
 
         constants.retrieve_EES_path()
-
-    @classmethod
-    def modify_macro_delay(cls, delay_ms):
-
-        constants.set_macro(delay_ms)
-
-
-if __name__ == "__main__":
-
-    import time
-
-    n_calculations = 32
-    calculate_with_macro = True
-    input_dict = dict()
-
-    T_amb = 15
-    T_BHE_in = 30
-    T_BHE_out = 100
-    P_BHE_in = 8000
-    P_BHE_out = 15000
-    steam_production = 1
-    P_steam = 1000
-    P_SG_perc = 0.5
-    dT_SG_pinch = 10
-
-    for i in range(n_calculations):
-
-        P_SG_perc = (float(i) / n_calculations) * (0.7 - 0.2) + 0.2
-
-        input_dict.update({
-
-            str(P_SG_perc): [
-
-                "CarbonDioxide", T_amb,
-                T_BHE_in, T_BHE_out, P_BHE_in, P_BHE_out,
-                steam_production, P_steam, P_SG_perc, dT_SG_pinch
-
-            ]
-
-        })
-
-    with EESConnector(solve_with_macro=calculate_with_macro) as connector:
-
-        connector.select_file()
-        start = time.time()
-        result = connector.calculate(input_dict)
-        print(result)
-
-    print("\n\ttime elapsed = {} s\n".format(time.time() - start))
